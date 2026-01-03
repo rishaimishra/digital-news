@@ -4,13 +4,14 @@ import { generateRSSFeed } from "@/lib/rss-generator"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ category: string }> }
 ) {
   try {
+    const { category: categoryParam } = await params
     // Find category by slug or ID
     const category = await prisma.category.findFirst({
       where: {
-        OR: [{ slug: params.category }, { id: params.category }],
+        OR: [{ slug: categoryParam }, { id: categoryParam }],
       },
     })
 

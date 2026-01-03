@@ -4,13 +4,14 @@ import { generateRSSFeed } from "@/lib/rss-generator"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { city: string } }
+  { params }: { params: Promise<{ city: string }> }
 ) {
   try {
+    const { city: cityParam } = await params
     // Find city by slug or ID
     const city = await prisma.city.findFirst({
       where: {
-        OR: [{ slug: params.city }, { id: params.city }],
+        OR: [{ slug: cityParam }, { id: cityParam }],
       },
     })
 

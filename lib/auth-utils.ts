@@ -1,9 +1,8 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { UserRole } from "@prisma/client"
 
 export async function getCurrentUser() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
   return session?.user || null
 }
 
@@ -26,4 +25,3 @@ export async function requireRole(allowedRoles: UserRole[]) {
 export function hasRole(userRole: UserRole, allowedRoles: UserRole[]): boolean {
   return allowedRoles.includes(userRole)
 }
-

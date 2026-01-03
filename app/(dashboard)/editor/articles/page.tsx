@@ -1,5 +1,4 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { ArticleCard } from "@/components/article/ArticleCard"
 import { Button } from "@/components/ui/button"
@@ -8,7 +7,7 @@ import { UserRole } from "@prisma/client"
 import ArticleActions from "@/components/article/ArticleActions"
 
 export default async function EditorArticlesPage() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
 
   if (!session?.user) {
     redirect("/login")

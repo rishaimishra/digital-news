@@ -1,12 +1,11 @@
 import Link from "next/link"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { UserRole } from "@prisma/client"
 import { SignOutButton } from "@/components/auth/SignOutButton"
 
 export default async function Header() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
 
   return (
     <header className="border-b">
@@ -63,4 +62,3 @@ export default async function Header() {
     </header>
   )
 }
-

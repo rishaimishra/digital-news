@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { UserRole } from "@prisma/client"
 import { writeFile, mkdir } from "fs/promises"
@@ -10,7 +9,7 @@ const UPLOAD_DIR = join(process.cwd(), "public", "uploads", "epaper")
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user || session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

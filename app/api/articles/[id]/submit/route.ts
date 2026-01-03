@@ -5,16 +5,17 @@ import { UserRole } from "@prisma/client"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const article = await prisma.newsArticle.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     if (!article) {
@@ -27,7 +28,7 @@ export async function POST(
     }
 
     const updatedArticle = await prisma.newsArticle.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         status: "SUBMITTED",
       },

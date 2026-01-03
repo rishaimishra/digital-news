@@ -16,11 +16,12 @@ const updateArticleSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const article = await prisma.newsArticle.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         author: {
           select: {
@@ -58,16 +59,17 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const article = await prisma.newsArticle.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!article) {
@@ -98,7 +100,7 @@ export async function PUT(
 
       while (
         await prisma.newsArticle.findFirst({
-          where: { slug, NOT: { id: params.id } },
+          where: { slug, NOT: { id } },
         })
       ) {
         slug = `${baseSlug}-${counter}`
@@ -109,7 +111,7 @@ export async function PUT(
 
     // Update article
     const updatedArticle = await prisma.newsArticle.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         ...updateData,
         tags: validatedData.tagIds
@@ -151,16 +153,17 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const article = await prisma.newsArticle.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!article) {
@@ -178,7 +181,7 @@ export async function DELETE(
     }
 
     await prisma.newsArticle.delete({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     return NextResponse.json({ message: "Article deleted successfully" })

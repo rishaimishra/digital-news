@@ -5,16 +5,17 @@ import { UserRole } from "@prisma/client"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     if (!session?.user || session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const grievance = await prisma.grievance.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         status: "REJECTED",
       },

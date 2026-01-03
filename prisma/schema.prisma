@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PUBLIC
+  REPORTER
+  EDITOR
+  ADMIN
+}
+
+enum ArticleStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum AdvertisementStatus {
+  ACTIVE
+  INACTIVE
+  PAUSED
+}
+
+enum GrievanceStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum EPaperStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(PUBLIC)
+  city      String?
+  language  String?  @default("en")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  authoredArticles NewsArticle[] @relation("ArticleAuthor")
+  editedArticles   NewsArticle[] @relation("ArticleEditor")
+  grievances       Grievance[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  articles      NewsArticle[]
+  advertisements Advertisement[]
+
+  @@index([slug])
+}
+
+model City {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  state     String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  articles      NewsArticle[]
+  advertisements Advertisement[]
+  epapers       EPaper[]
+
+  @@index([slug])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  // Relations
+  articles NewsArticle[]
+
+  @@index([slug])
+}
+
+model NewsArticle {
+  id          String        @id @default(cuid())
+  title       String
+  content     String        @db.Text
+  slug        String        @unique
+  status      ArticleStatus @default(DRAFT)
+  language    String        @default("en")
+  authorId    String
+  editorId    String?
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Foreign Keys
+  categoryId String?
+  cityId     String?
+
+  // Relations
+  author       User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+  editor       User?         @relation("ArticleEditor", fields: [editorId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  city         City?         @relation(fields: [cityId], references: [id])
+  tags         Tag[]
+  media        Media[]
+  grievances   Grievance[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([categoryId])
+  @@index([cityId])
+  @@index([authorId])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  url         String
+  type        MediaType
+  articleId   String
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  article NewsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+}
+
+model Advertisement {
+  id          String              @id @default(cuid())
+  title       String
+  content     String?             @db.Text
+  imageUrl    String
+  url         String?
+  startDate   DateTime
+  endDate     DateTime?
+  isSponsored Boolean             @default(false)
+  status      AdvertisementStatus @default(ACTIVE)
+  createdAt   DateTime            @default(now())
+
+  // Foreign Keys
+  categoryId String?
+  cityId     String?
+
+  // Relations
+  category Category? @relation(fields: [categoryId], references: [id])
+  city     City?     @relation(fields: [cityId], references: [id])
+
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model EPaper {
+  id           String       @id @default(cuid())
+  date         DateTime     @db.Date
+  language     String       @default("en")
+  fileUrl      String?
+  thumbnailUrl String?
+  pageCount    Int          @default(0)
+  status       EPaperStatus @default(DRAFT)
+  createdAt    DateTime     @default(now())
+
+  // Foreign Key
+  cityId String?
+
+  // Relations
+  city  City?         @relation(fields: [cityId], references: [id])
+  pages EPaperPage[]
+
+  @@unique([date, cityId, language])
+  @@index([date])
+  @@index([cityId])
+  @@index([status])
+}
+
+model EPaperPage {
+  id         String   @id @default(cuid())
+  pageNumber Int
+  imageUrl   String
+  epaperId   String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  epaper EPaper @relation(fields: [epaperId], references: [id], onDelete: Cascade)
+
+  @@unique([epaperId, pageNumber])
+  @@index([epaperId])
+}
+
+model Grievance {
+  id          String          @id @default(cuid())
+  subject     String
+  description String          @db.Text
+  status      GrievanceStatus @default(PENDING)
+  resolution  String?         @db.Text
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Foreign Keys
+  userId    String?
+  articleId String?
+
+  // Relations
+  user    User?         @relation(fields: [userId], references: [id])
+  article NewsArticle?  @relation(fields: [articleId], references: [id])
+
+  @@index([status])
+  @@index([userId])
+  @@index([articleId])
+  @@index([createdAt])
+}
+

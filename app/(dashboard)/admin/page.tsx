@@ -86,6 +86,32 @@ export default async function AdminDashboardPage() {
           </Card>
         </Link>
 
+        <Link href="/admin/categories">
+          <Card className="hover:bg-accent transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle>Categories Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Create and manage news categories
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/cities">
+          <Card className="hover:bg-accent transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle>Cities Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Create and manage cities for regional news
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link href="/editor/articles">
           <Card className="hover:bg-accent transition-colors cursor-pointer">
             <CardHeader>

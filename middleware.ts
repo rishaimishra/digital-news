@@ -5,7 +5,6 @@ import { UserRole } from "@prisma/client"
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
 
   // Public routes - allow all
   if (
@@ -25,9 +24,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Get token - NextAuth v5 uses default cookie names
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  })
+
   // Protected routes require authentication
   if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.searchParams.set("callbackUrl", path)
+    return NextResponse.redirect(loginUrl)
   }
 
   const userRole = token.role as UserRole

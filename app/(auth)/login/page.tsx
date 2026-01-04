@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -23,22 +22,18 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const callbackUrl = searchParams.get("callbackUrl") || "/"
-      const result = await signIn("credentials", {
+      // Get callbackUrl from URL search params
+      const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl") || "/"
+      
+      // Use redirect: true to let NextAuth handle setting cookies properly
+      await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: callbackUrl,
       })
-
-      if (result?.error) {
-        setError("Invalid email or password")
-      } else {
-        // Force a hard navigation to clear cache and ensure middleware sees the new session
-        window.location.href = callbackUrl
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.")
-    } finally {
+    } catch (err: any) {
+      setError(err?.message || "An error occurred. Please try again.")
       setLoading(false)
     }
   }
@@ -98,4 +93,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
